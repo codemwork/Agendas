@@ -1,38 +1,112 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Delivery Scheduling</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .container { width: 90%; max-width: 600px; margin: auto; padding: 20px; }
-        h1 { text-align: center; }
-        .schedule { margin: 20px 0; }
-        .priority { color: red; font-weight: bold; }
-    </style>
+    <title>Programación de Entregas</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Delivery Scheduling</h1>
+        <h1>Programación de Entregas</h1>
+        
+        <!-- Información de Horarios Prioritarios -->
         <div class="schedule">
-            <h2>Metro Buenavista (Mondays)</h2>
-            <p>If you're scheduling a delivery for Monday, please contact us during the priority time:</p>
-            <ul>
-                <li class="priority">Priority Time: 10:00 AM - 2:00 PM</li>
-            </ul>
+            <h2>📍 Metro Buenavista (Lunes)</h2>
+            <p>Si estás programando una entrega para el lunes, contáctanos durante el horario prioritario:</p>
+            <div class="priority-info">
+                ⏰ Horario Prioritario: 10:00 AM - 2:00 PM
+            </div>
         </div>
+        
         <div class="schedule">
-            <h2>Metro Rosario (Tuesday - Friday)</h2>
-            <p>For deliveries on Tuesday through Friday, standard scheduling applies:</p>
-            <ul>
-                <li class="priority">Standard Hours: 9:00 AM - 5:00 PM</li>
-            </ul>
-            <p>Priority requests are accepted during these times:</p>
-            <ul>
-                <li class="priority">Priority Time: 12:00 PM - 2:00 PM</li>
+            <h2>📍 Metro Rosario (Martes - Viernes)</h2>
+            <p>Para entregas de martes a viernes, aplica programación estándar:</p>
+            <div class="priority-info">
+                🕐 Horario Estándar: 9:00 AM - 5:00 PM
+            </div>
+            <p>Las solicitudes prioritarias se aceptan durante estos horarios:</p>
+            <div class="priority-info">
+                ⏰ Horario Prioritario: 12:00 PM - 2:00 PM
+            </div>
+        </div>
+
+        <!-- Formulario de Programación -->
+        <div class="scheduling-form">
+            <h2>📅 Programar Nueva Entrega</h2>
+            <form id="deliveryForm">
+                <label for="deliveryTime">Fecha y Hora:</label>
+                <input type="datetime-local" id="deliveryTime" name="deliveryTime" required>
+                <label for="location">Ubicación:</label>
+                <select id="location" name="location" required>
+                    <option value="">Selecciona una ubicación</option>
+                    <option value="Metro Buenavista">Metro Buenavista</option>
+                    <option value="Metro Rosario">Metro Rosario</option>
+                </select>
+                <button type="submit">Agregar Entrega</button>
+            </form>
+        </div>
+
+        <!-- Lista de Entregas Programadas -->
+        <div class="scheduled-deliveries">
+            <h2>📦 Entregas Programadas</h2>
+            <ul class="appointment-list" id="deliveryList">
+                <li class="appointment-item">No hay entregas programadas</li>
             </ul>
         </div>
     </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Inicializar el programador de entregas
+        const scheduler = new DeliveryScheduler();
+        
+        // Manejar el envío del formulario
+        document.getElementById('deliveryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const time = document.getElementById('deliveryTime').value;
+            const location = document.getElementById('location').value;
+            
+            // Convert datetime-local format (YYYY-MM-DDTHH:MM) to storage format (YYYY-MM-DD HH:MM)
+            const formattedTime = time.replace('T', ' ');
+            
+            if (scheduler.addDelivery(formattedTime, location)) {
+                alert('✅ Entrega agregada exitosamente');
+                updateDeliveryList();
+                this.reset();
+            } else {
+                alert('❌ Conflicto detectado: No se puede programar esta entrega en este horario.');
+            }
+        });
+        
+        // Actualizar la lista de entregas
+        function updateDeliveryList() {
+            const listElement = document.getElementById('deliveryList');
+            const deliveries = scheduler.schedule;
+            
+            if (deliveries.length === 0) {
+                listElement.innerHTML = '<li class="appointment-item">No hay entregas programadas</li>';
+                return;
+            }
+            
+            listElement.innerHTML = deliveries.map(delivery => {
+                // Convert storage format (YYYY-MM-DD HH:MM) to ISO format for proper Date parsing
+                const isoTime = delivery.time.replace(' ', 'T');
+                const date = new Date(isoTime);
+                const displayTime = isNaN(date.getTime()) ? delivery.time : date.toLocaleString('es-ES');
+                
+                return `
+                    <li class="appointment-item">
+                        <strong>📍 ${delivery.location}</strong><br>
+                        🕐 ${displayTime}
+                    </li>
+                `;
+            }).join('');
+        }
+        
+        // Cargar entregas al iniciar
+        updateDeliveryList();
+    </script>
 </body>
 </html>
