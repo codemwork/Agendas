@@ -19,11 +19,32 @@ La aplicación está desplegada en GitHub Pages y puede accederse en:
 
 Este repositorio utiliza GitHub Actions para desplegar automáticamente a GitHub Pages cuando se realizan cambios en la rama `main`.
 
-### Cómo Activar GitHub Pages
+### ⚠️ Pasos Requeridos para Activar GitHub Pages
 
-1. Ve a **Settings** → **Pages** en el repositorio de GitHub
-2. En **Source**, selecciona **GitHub Actions**
-3. El workflow se ejecutará automáticamente con cada push a `main`
+**IMPORTANTE:** GitHub Pages debe estar habilitado en la configuración del repositorio antes de que el sitio funcione. Sigue estos pasos:
+
+1. Ve a **Settings** (Configuración) → **Pages** en el repositorio de GitHub
+2. En **Build and deployment** → **Source**, selecciona **GitHub Actions**
+3. Guarda los cambios
+4. El workflow se ejecutará automáticamente con cada push a `main` o `copilot/add-github-pages-support`
+5. Una vez completado el despliegue, el sitio estará disponible en: **https://codemwork.github.io/Agendas/**
+
+### 🔍 Estado del Despliegue
+
+Si ves el mensaje "There isn't a GitHub Pages site here", significa que necesitas:
+- ✅ Activar GitHub Pages en Settings → Pages → Source: GitHub Actions
+- ✅ Esperar a que el workflow complete su ejecución (verifica en la pestaña Actions)
+- ✅ Asegurarte de que la rama main contenga el archivo `.github/workflows/deploy.yml`
+
+### 🔄 Cómo Funciona
+
+El archivo `.github/workflows/deploy.yml` automáticamente:
+1. Se activa cuando hay un push a `main` o `copilot/add-github-pages-support`
+2. Configura GitHub Pages
+3. Sube todos los archivos del repositorio como artefacto
+4. Despliega el artefacto a GitHub Pages
+
+Puedes ejecutar manualmente el workflow desde la pestaña "Actions" usando el botón "Run workflow".
 
 ## 💻 Desarrollo Local
 
