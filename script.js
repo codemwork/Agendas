@@ -52,5 +52,4 @@ class DeliveryScheduler {
     }
 }
 
-// Export for use in HTML
-// Scheduler instance will be created in index.html
+// DeliveryScheduler class is available globally for use in index.html

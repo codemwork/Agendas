@@ -37,7 +37,7 @@
             <h2>📅 Programar Nueva Entrega</h2>
             <form id="deliveryForm">
                 <label for="deliveryTime">Fecha y Hora:</label>
-                <input type="datetime-local" id="deliveryTime" name="deliveryTime" required placeholder="Fecha y Hora">
+                <input type="datetime-local" id="deliveryTime" name="deliveryTime" required>
                 <label for="location">Ubicación:</label>
                 <select id="location" name="location" required>
                     <option value="">Selecciona una ubicación</option>
@@ -68,7 +68,10 @@
             const time = document.getElementById('deliveryTime').value;
             const location = document.getElementById('location').value;
             
-            if (scheduler.addDelivery(time, location)) {
+            // Convert datetime-local format (YYYY-MM-DDTHH:MM) to expected format (YYYY-MM-DD HH:MM)
+            const formattedTime = time.replace('T', ' ');
+            
+            if (scheduler.addDelivery(formattedTime, location)) {
                 alert('✅ Entrega agregada exitosamente');
                 updateDeliveryList();
                 this.reset();
