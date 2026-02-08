@@ -138,6 +138,7 @@ function renderCalendar() {
     const firstDay = new Date(state.currentYear, state.currentMonth, 1).getDay();
     const daysInMonth = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
     const today = new Date();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
     
     // Días vacíos antes del primer día del mes
     for (let i = 0; i < firstDay; i++) {
@@ -164,7 +165,7 @@ function renderCalendar() {
         }
         
         // Verificar si el día está permitido para esta ubicación
-        const isPast = date < today.setHours(0, 0, 0, 0);
+        const isPast = date.getTime() < todayMidnight;
         const isAllowed = allowedDays.includes(dayOfWeek);
         
         if (isPast || !isAllowed) {
@@ -247,7 +248,7 @@ function showTimeSlots() {
                 slot.classList.add('priority');
             }
             
-            slot.addEventListener('click', () => selectTime(time, index));
+            slot.addEventListener('click', (e) => selectTime(time, index, e.currentTarget));
         }
         
         timeGrid.appendChild(slot);
@@ -261,8 +262,8 @@ function isTimeSlotAvailable(hourIndex, priorityHour) {
     }
     
     // Permitir solo ±2 horas de la hora prioritaria
-    const diff = Math.abs(hourIndex - priorityHour.hour);
-    return diff <= 2;
+    const hourDifference = Math.abs(hourIndex - priorityHour.hour);
+    return hourDifference <= 2;
 }
 
 // Obtener rango de tiempo permitido
@@ -273,14 +274,14 @@ function getTimeRange(priorityHourIndex) {
 }
 
 // Seleccionar hora
-function selectTime(time, hourIndex) {
+function selectTime(time, hourIndex, clickedElement) {
     state.selectedTime = { time, hourIndex };
     
     // Actualizar UI
     document.querySelectorAll('.time-slot').forEach(slot => {
         slot.classList.remove('selected');
     });
-    event.target.classList.add('selected');
+    clickedElement.classList.add('selected');
     
     // Mostrar botón de confirmación
     document.getElementById('confirmBtn').style.display = 'block';
