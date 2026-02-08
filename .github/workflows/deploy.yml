@@ -1,10 +1,13 @@
 name: Deploy to GitHub Pages
 
+# This workflow deploys the site to GitHub Pages
+# Note: The feature branch trigger is temporary for testing and should be removed before merging to main
+
 on:
   push:
     branches:
       - main
-      - copilot/add-github-pages-support
+      - copilot/add-github-pages-support  # TEMPORARY: Remove before merging to main
   workflow_dispatch:
 
 permissions:

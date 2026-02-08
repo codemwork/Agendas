@@ -39,12 +39,14 @@ Si ves el mensaje "There isn't a GitHub Pages site here", significa que necesita
 ### 🔄 Cómo Funciona
 
 El archivo `.github/workflows/deploy.yml` automáticamente:
-1. Se activa cuando hay un push a `main` o `copilot/add-github-pages-support`
+1. Se activa cuando hay un push a `main`
 2. Configura GitHub Pages
 3. Sube todos los archivos del repositorio como artefacto
 4. Despliega el artefacto a GitHub Pages
 
 Puedes ejecutar manualmente el workflow desde la pestaña "Actions" usando el botón "Run workflow".
+
+> **Nota para desarrolladores**: El workflow actualmente también se activa en la rama `copilot/add-github-pages-support` para propósitos de prueba. Esta referencia será eliminada cuando el PR sea mergeado a `main`.
 
 ## 💻 Desarrollo Local
 

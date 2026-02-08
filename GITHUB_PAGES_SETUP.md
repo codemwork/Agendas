@@ -30,11 +30,12 @@ Hay dos opciones para iniciar el despliegue:
 1. Ve a la pestaña **Actions** en el repositorio
 2. En el panel izquierdo, selecciona **Deploy to GitHub Pages**
 3. Haz clic en el botón **Run workflow** (ejecutar workflow)
-4. Selecciona la rama `copilot/add-github-pages-support` o `main`
+4. Selecciona la rama `main` (o la rama actual si estás en desarrollo)
 5. Haz clic en **Run workflow** verde
 
 #### Opción B: Automáticamente
-- El workflow se ejecuta automáticamente al hacer push a las ramas `main` o `copilot/add-github-pages-support`
+- El workflow se ejecuta automáticamente al hacer push a la rama `main`
+- Durante desarrollo, también puede activarse en otras ramas si están configuradas en el workflow
 
 ### Paso 4: Verificar el Despliegue
 
