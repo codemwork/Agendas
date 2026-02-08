@@ -52,9 +52,5 @@ class DeliveryScheduler {
     }
 }
 
-// Example usage
-const scheduler = new DeliveryScheduler();
-scheduler.addDelivery('2026-02-08 10:00', 'Metro Buenavista'); // Monday
-scheduler.addDelivery('2026-02-09 10:00', 'Metro Rosario');   // Tuesday
-
-console.log(scheduler.groupDeliveries());
+// Export for use in HTML
+// Scheduler instance will be created in index.html
