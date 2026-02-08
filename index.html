@@ -68,7 +68,7 @@
             const time = document.getElementById('deliveryTime').value;
             const location = document.getElementById('location').value;
             
-            // Convert datetime-local format (YYYY-MM-DDTHH:MM) to expected format (YYYY-MM-DD HH:MM)
+            // Convert datetime-local format (YYYY-MM-DDTHH:MM) to storage format (YYYY-MM-DD HH:MM)
             const formattedTime = time.replace('T', ' ');
             
             if (scheduler.addDelivery(formattedTime, location)) {
@@ -90,12 +90,19 @@
                 return;
             }
             
-            listElement.innerHTML = deliveries.map(delivery => `
-                <li class="appointment-item">
-                    <strong>📍 ${delivery.location}</strong><br>
-                    🕐 ${new Date(delivery.time.replace(' ', 'T')).toLocaleString('es-ES')}
-                </li>
-            `).join('');
+            listElement.innerHTML = deliveries.map(delivery => {
+                // Convert storage format (YYYY-MM-DD HH:MM) to ISO format for proper Date parsing
+                const isoTime = delivery.time.replace(' ', 'T');
+                const date = new Date(isoTime);
+                const displayTime = isNaN(date.getTime()) ? delivery.time : date.toLocaleString('es-ES');
+                
+                return `
+                    <li class="appointment-item">
+                        <strong>📍 ${delivery.location}</strong><br>
+                        🕐 ${displayTime}
+                    </li>
+                `;
+            }).join('');
         }
         
         // Cargar entregas al iniciar
