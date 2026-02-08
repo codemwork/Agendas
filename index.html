@@ -3,52 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendas - Sistema de Entregas</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Agenda de Entregas</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📅 Sistema de Entregas</h1>
-            <p>Agenda tu entrega de piezas</p>
+            <h1>📦 Agenda de Entregas</h1>
+            <p>Selecciona fecha y hora para tu entrega</p>
         </header>
 
-        <div class="location-selector">
-            <h3>📍 Selecciona ubicación</h3>
-            <div class="location-buttons">
-                <button class="location-btn" data-location="buenavista">
-                    🚇 Metro Buenavista<br>
-                    <small>Solo Lunes</small>
-                </button>
-                <button class="location-btn" data-location="rosario">
-                    🚇 Metro Rosario<br>
-                    <small>Martes - Viernes</small>
-                </button>
-            </div>
-        </div>
+        <main>
+            <!-- Selector de Fecha -->
+            <section class="date-section">
+                <h2>📅 Seleccionar Fecha</h2>
+                <input type="date" id="dateInput" min=""> 
+                <div id="locationInfo" class="location-info"></div>
+            </section>
 
-        <div class="calendar-section" id="calendarSection" style="display: none;">
-            <h3>📅 Selecciona fecha</h3>
-            <div class="calendar-container">
-                <div class="calendar-header">
-                    <button id="prevMonth">&lt;</button>
-                    <span id="monthYear"></span>
-                    <button id="nextMonth">&gt;</button>
-                </div>
-                <div class="calendar-grid" id="calendarGrid"></div>
-            </div>
-        </div>
+            <!-- Horarios Disponibles -->
+            <section class="time-section" id="timeSection" style="display: none;">
+                <h2>⏰ Horarios Disponibles</h2>
+                <div id="priorityInfo" class="priority-info"></div>
+                <div id="timeSlots" class="time-slots"></div>
+            </section>
 
-        <div class="time-section" id="timeSection" style="display: none;">
-            <h3>🕒 Horarios disponibles</h3>
-            <div id="priorityInfo" class="priority-info"></div>
-            <div class="time-grid" id="timeGrid"></div>
-            <button id="confirmBtn" class="confirm-btn" style="display: none;">Confirmar Cita</button>
-        </div>
+            <!-- Formulario de Reserva -->
+            <section class="booking-section" id="bookingSection" style="display: none;">
+                <h2>✍️ Datos de Reserva</h2>
+                <form id="bookingForm">
+                    <div class="form-group">
+                        <label for="clientName">Nombre completo:</label>
+                        <input type="text" id="clientName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientPhone">Teléfono:</label>
+                        <input type="tel" id="clientPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pieceDescription">Descripción de la pieza:</label>
+                        <textarea id="pieceDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="selected-info">
+                        <p><strong>Fecha:</strong> <span id="selectedDate"></span></p>
+                        <p><strong>Hora:</strong> <span id="selectedTime"></span></p>
+                        <p><strong>Ubicación:</strong> <span id="selectedLocation"></span></p>
+                    </div>
+                    <button type="submit" class="btn-confirm">Confirmar Reserva</button>
+                </form>
+            </section>
 
-        <div class="appointments-section">
-            <h3>📋 Citas agendadas</h3>
-            <div id="appointmentsList" class="appointments-list"></div>
+            <!-- Mis Reservas -->
+            <section class="reservations-section">
+                <h2>📋 Mis Reservas</h2>
+                <div id="userReservations"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3>✅ Reserva Confirmada</h3>
+            <p id="confirmMessage"></p>
+            <button onclick="closeModal()" class="btn-ok">Aceptar</button>
         </div>
     </div>
 
