@@ -3,35 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Delivery Scheduling</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Delivery Scheduling</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .day {
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Mobile Delivery Scheduling</h1>
-    </header>
-    <main>
-        <section>
-            <h2>Schedule Your Delivery</h2>
-            <form id="deliveryForm">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
+    <h1>Delivery Scheduling</h1>
+    <p>Select an available delivery day:</p>
+    <div id="delivery-schedule">
+        <div class="day" id="tuesday">Tuesday - Available</div>
+        <div class="day" id="wednesday">Wednesday - Available</div>
+        <div class="day" id="thursday">Thursday - Available</div>
+        <div class="day" id="friday">Friday - Available</div>
+        <div class="day" id="monday">Monday at Metro Buenavista - Available</div>
+    </div>
+    <h2>Book Your Delivery</h2>
+    <p>Priority Time (HH:MM): <input type="time" id="priorityTime" /></p>
+    <button onclick="bookDelivery()">Book Delivery</button>
 
-                <label for="address">Delivery Address:</label>
-                <input type="text" id="address" name="address" required>
+    <script>
+        let priorityTime = null;
 
-                <label for="date">Delivery Date:</label>
-                <input type="date" id="date" name="date" required>
+        function bookDelivery() {
+            const timeInput = document.getElementById('priorityTime').value;
+            if (!timeInput) {
+                alert('Please select a time.');
+                return;
+            }
+            const bookingHour = new Date();
+            const splitTime = timeInput.split(':');
+            bookingHour.setHours(splitTime[0]);
+            bookingHour.setMinutes(splitTime[1]);
 
-                <label for="time">Delivery Time:</label>
-                <input type="time" id="time" name="time" required>
-
-                <button type="submit">Schedule Delivery</button>
-            </form>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2026 Mobile Delivery Service</p>
-    </footer>
+            if (priorityTime === null) {
+                priorityTime = bookingHour;
+                alert(`Priority time set to ${timeInput}`);
+            } else {
+                const diff = (bookingHour - priorityTime) / (1000 * 60); // in minutes
+                if (diff < 60) {
+                    alert('You can only book within 1-2 hours of the priority time.');
+                } else {
+                    alert(`Delivery booked for ${timeInput}`);
+                }
+            }
+        }
+    </script>
 </body>
 </html>
