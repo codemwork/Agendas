@@ -1,61 +1,65 @@
-.container {
+.calendar {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
-    font-family: 'Arial', sans-serif;
-    background-color: #f7f9fc;
+    font-family: Arial, sans-serif;
 }
 
-.header {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 16px;
-}
-
-.button {
-    background-color: #4CAF50;
-    border: none;
+.calendar-header {
+    background-color: #007BFF;
     color: white;
-    padding: 15px 32px;
+    padding: 1em;
     text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.button:hover {
-    background-color: #45a049;
-}
-
-.table {
     width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
 }
 
-.table th, .table td {
+.weekday {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.day {
+    width: 14%;
+    border: 1px solid #007BFF;
+    padding: 10px;
+}
+
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(24, 1fr);
+    gap: 2px;
+}
+
+.time-slot {
     border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+    background-color: #f9f9f9;
+    position: relative;
 }
 
-.table th {
-    background-color: #4CAF50;
+.location-button {
+    background-color: #28A745;
     color: white;
+    border: none;
+    padding: 0.5em;
+    cursor: pointer;
+    border-radius: 4px;
 }
 
-@media (max-width: 600px) {
-    .header {
-        font-size: 20px;
-    }
-    .button {
-        width: 100%;
-        padding: 12px;
-        font-size: 14px;
-    }
+.priority-info {
+    font-weight: bold;
+    margin: 0.5em 0;
+}
+
+.appointment-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.appointment-item {
+    background-color: #eeeeee;
+    margin: 0.5em 0;
+    padding: 1em;
+    border-radius: 5px;
 }
