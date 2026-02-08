@@ -3,57 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delivery Scheduling</title>
+    <title>Mobile Delivery Scheduling</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .day {
-            margin: 10px 0;
-        }
+        body { font-family: Arial, sans-serif; }
+        .container { width: 90%; max-width: 600px; margin: auto; padding: 20px; }
+        h1 { text-align: center; }
+        .schedule { margin: 20px 0; }
+        .priority { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h1>Delivery Scheduling</h1>
-    <p>Select an available delivery day:</p>
-    <div id="delivery-schedule">
-        <div class="day" id="tuesday">Tuesday - Available</div>
-        <div class="day" id="wednesday">Wednesday - Available</div>
-        <div class="day" id="thursday">Thursday - Available</div>
-        <div class="day" id="friday">Friday - Available</div>
-        <div class="day" id="monday">Monday at Metro Buenavista - Available</div>
+    <div class="container">
+        <h1>Delivery Scheduling</h1>
+        <div class="schedule">
+            <h2>Metro Buenavista (Mondays)</h2>
+            <p>If you're scheduling a delivery for Monday, please contact us during the priority time:</p>
+            <ul>
+                <li class="priority">Priority Time: 10:00 AM - 2:00 PM</li>
+            </ul>
+        </div>
+        <div class="schedule">
+            <h2>Metro Rosario (Tuesday - Friday)</h2>
+            <p>For deliveries on Tuesday through Friday, standard scheduling applies:</p>
+            <ul>
+                <li class="priority">Standard Hours: 9:00 AM - 5:00 PM</li>
+            </ul>
+            <p>Priority requests are accepted during these times:</p>
+            <ul>
+                <li class="priority">Priority Time: 12:00 PM - 2:00 PM</li>
+            </ul>
+        </div>
     </div>
-    <h2>Book Your Delivery</h2>
-    <p>Priority Time (HH:MM): <input type="time" id="priorityTime" /></p>
-    <button onclick="bookDelivery()">Book Delivery</button>
-
-    <script>
-        let priorityTime = null;
-
-        function bookDelivery() {
-            const timeInput = document.getElementById('priorityTime').value;
-            if (!timeInput) {
-                alert('Please select a time.');
-                return;
-            }
-            const bookingHour = new Date();
-            const splitTime = timeInput.split(':');
-            bookingHour.setHours(splitTime[0]);
-            bookingHour.setMinutes(splitTime[1]);
-
-            if (priorityTime === null) {
-                priorityTime = bookingHour;
-                alert(`Priority time set to ${timeInput}`);
-            } else {
-                const diff = (bookingHour - priorityTime) / (1000 * 60); // in minutes
-                if (diff < 60) {
-                    alert('You can only book within 1-2 hours of the priority time.');
-                } else {
-                    alert(`Delivery booked for ${timeInput}`);
-                }
-            }
-        }
-    </script>
 </body>
 </html>
