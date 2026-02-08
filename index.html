@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendas - Sistema de Entregas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📅 Sistema de Entregas</h1>
+            <p>Agenda tu entrega de piezas</p>
+        </header>
+
+        <div class="location-selector">
+            <h3>📍 Selecciona ubicación</h3>
+            <div class="location-buttons">
+                <button class="location-btn" data-location="buenavista">
+                    🚇 Metro Buenavista<br>
+                    <small>Solo Lunes</small>
+                </button>
+                <button class="location-btn" data-location="rosario">
+                    🚇 Metro Rosario<br>
+                    <small>Martes - Viernes</small>
+                </button>
+            </div>
+        </div>
+
+        <div class="calendar-section" id="calendarSection" style="display: none;">
+            <h3>📅 Selecciona fecha</h3>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button id="prevMonth">&lt;</button>
+                    <span id="monthYear"></span>
+                    <button id="nextMonth">&gt;</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+        </div>
+
+        <div class="time-section" id="timeSection" style="display: none;">
+            <h3>🕒 Horarios disponibles</h3>
+            <div id="priorityInfo" class="priority-info"></div>
+            <div class="time-grid" id="timeGrid"></div>
+            <button id="confirmBtn" class="confirm-btn" style="display: none;">Confirmar Cita</button>
+        </div>
+
+        <div class="appointments-section">
+            <h3>📋 Citas agendadas</h3>
+            <div id="appointmentsList" class="appointments-list"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
