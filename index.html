@@ -1,75 +1,37 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda de Entregas</title>
+    <title>Mobile Delivery Scheduling</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📦 Agenda de Entregas</h1>
-            <p>Selecciona fecha y hora para tu entrega</p>
-        </header>
+    <header>
+        <h1>Mobile Delivery Scheduling</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Schedule Your Delivery</h2>
+            <form id="deliveryForm">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
 
-        <main>
-            <!-- Selector de Fecha -->
-            <section class="date-section">
-                <h2>📅 Seleccionar Fecha</h2>
-                <input type="date" id="dateInput" min=""> 
-                <div id="locationInfo" class="location-info"></div>
-            </section>
+                <label for="address">Delivery Address:</label>
+                <input type="text" id="address" name="address" required>
 
-            <!-- Horarios Disponibles -->
-            <section class="time-section" id="timeSection" style="display: none;">
-                <h2>⏰ Horarios Disponibles</h2>
-                <div id="priorityInfo" class="priority-info"></div>
-                <div id="timeSlots" class="time-slots"></div>
-            </section>
+                <label for="date">Delivery Date:</label>
+                <input type="date" id="date" name="date" required>
 
-            <!-- Formulario de Reserva -->
-            <section class="booking-section" id="bookingSection" style="display: none;">
-                <h2>✍️ Datos de Reserva</h2>
-                <form id="bookingForm">
-                    <div class="form-group">
-                        <label for="clientName">Nombre completo:</label>
-                        <input type="text" id="clientName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="clientPhone">Teléfono:</label>
-                        <input type="tel" id="clientPhone" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="pieceDescription">Descripción de la pieza:</label>
-                        <textarea id="pieceDescription" rows="3" required></textarea>
-                    </div>
-                    <div class="selected-info">
-                        <p><strong>Fecha:</strong> <span id="selectedDate"></span></p>
-                        <p><strong>Hora:</strong> <span id="selectedTime"></span></p>
-                        <p><strong>Ubicación:</strong> <span id="selectedLocation"></span></p>
-                    </div>
-                    <button type="submit" class="btn-confirm">Confirmar Reserva</button>
-                </form>
-            </section>
+                <label for="time">Delivery Time:</label>
+                <input type="time" id="time" name="time" required>
 
-            <!-- Mis Reservas -->
-            <section class="reservations-section">
-                <h2>📋 Mis Reservas</h2>
-                <div id="userReservations"></div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Modal de Confirmación -->
-    <div id="confirmModal" class="modal">
-        <div class="modal-content">
-            <h3>✅ Reserva Confirmada</h3>
-            <p id="confirmMessage"></p>
-            <button onclick="closeModal()" class="btn-ok">Aceptar</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+                <button type="submit">Schedule Delivery</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 Mobile Delivery Service</p>
+    </footer>
 </body>
 </html>
