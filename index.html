@@ -93,7 +93,7 @@
             listElement.innerHTML = deliveries.map(delivery => `
                 <li class="appointment-item">
                     <strong>📍 ${delivery.location}</strong><br>
-                    🕐 ${new Date(delivery.time).toLocaleString('es-ES')}
+                    🕐 ${new Date(delivery.time.replace(' ', 'T')).toLocaleString('es-ES')}
                 </li>
             `).join('');
         }
