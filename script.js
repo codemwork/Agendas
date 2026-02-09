@@ -143,7 +143,7 @@ class DeliveryScheduler {
         calendar.innerHTML = '';
 
         const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
-        const locations = ['Metro Rosario', 'Metro Rosario', 'Metro Rosario', 'Metro Rosario', 'Metro Lindavista'];
+        const locations = ['Metro Rosario', 'Metro Rosario', 'Metro Rosario', 'Metro Rosario', 'Metro Buenavista'];
 
         days.forEach((dayName, index) => {
             const currentDate = new Date(this.currentWeek);
@@ -305,7 +305,7 @@ class DeliveryScheduler {
         this.pendingAppointment = {
             date: this.selectedDate,
             time: this.selectedTime,
-            location: this.selectedDate.getDay() === 5 ? 'Metro Lindavista' : 'Metro Rosario'
+            location: this.selectedDate.getDay() === 5 ? 'Metro Buenavista' : 'Metro Rosario'
         };
         
         this.showPaymentModal();
@@ -700,7 +700,7 @@ class DeliveryScheduler {
 
     updateLocationPriorityDisplay() {
         const rosario = document.querySelector('.location-card.rosario .priority-text');
-        const lindavista = document.querySelector('.location-card.lindavista .priority-text');
+        const buenavista = document.querySelector('.location-card.buenavista .priority-text');
         
         // Check Monday-Thursday (Rosario) priorities
         let rosarioPriorities = [];
@@ -712,7 +712,7 @@ class DeliveryScheduler {
             if (priority) rosarioPriorities.push(priority);
         }
         
-        // Check Friday (Lindavista) priority
+        // Check Friday (Buenavista) priority
         const fridayDate = new Date(this.currentWeek);
         fridayDate.setDate(fridayDate.getDate() + 4); // Viernes
         const fridayKey = this.getDayKey(fridayDate);
@@ -724,8 +724,8 @@ class DeliveryScheduler {
                 `${rosarioPriorities.length} entrega(s) programada(s)` : 'Sin entregas programadas';
         }
         
-        if (lindavista) {
-            lindavista.textContent = fridayPriority ? 
+        if (buenavista) {
+            buenavista.textContent = fridayPriority ? 
                 `Entrega prioritaria: ${fridayPriority}` : 'Sin entregas programadas';
         }
     }

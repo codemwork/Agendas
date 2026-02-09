@@ -6,7 +6,7 @@ Una aplicación web móvil para gestionar entregas de artesanías con sistema de
 
 ### ✅ Sistema de Entregas Inteligente
 - **Lunes-Jueves**: Metro Rosario  
-- **Viernes**: Metro Lindavista
+- **Viernes**: Metro Buenavista
 - **Horarios**: 9:00 AM - 7:00 PM
 
 ### ✅ Seguimiento de Artículos
@@ -66,7 +66,7 @@ Una aplicación web móvil para gestionar entregas de artesanías con sistema de
       "maxAppointments": 3
     },
     "friday": {
-      "name": "Metro Lindavista",
+      "name": "Metro Buenavista",
       "maxAppointments": 3  
     }
   },
