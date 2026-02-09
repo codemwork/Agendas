@@ -512,6 +512,81 @@ body {
     border: 1px solid #f5c6cb;
 }
 
+/* Estilos mejorados para confirmación de cancelación */
+.cancel-success {
+    text-align: center;
+}
+
+.cancel-success .success-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    animation: bounceIn 0.5s ease-out;
+}
+
+.cancel-success h4 {
+    color: #155724;
+    margin: 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.canceled-appointment-details {
+    background: rgba(21, 87, 36, 0.1);
+    padding: 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+    text-align: left;
+}
+
+.canceled-appointment-details p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.cancel-note {
+    font-style: italic;
+    opacity: 0.8;
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+.cancel-error {
+    text-align: center;
+}
+
+.cancel-error .error-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.cancel-error p {
+    margin: 8px 0;
+    font-weight: 500;
+}
+
+.error-note {
+    font-style: italic;
+    opacity: 0.7;
+    font-size: 13px;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 /* Formularios */
 .form-group {
     margin-bottom: 20px;

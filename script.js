@@ -463,16 +463,18 @@ class DeliveryScheduler {
             this.updateLocationPriorityDisplay();
             
             const appointmentDateObj = new Date(appointmentDate);
-            this.showCancelResult(
-                `Cita cancelada exitosamente:\n${foundAppointment.name} - ${foundAppointment.time} el ${appointmentDateObj.toLocaleDateString('es')}`, 
-                true
-            );
+            
+            // Mostrar confirmación visual mejorada
+            this.showCancelResult(foundAppointment, appointmentDateObj, true);
+            
+            // Enviar notificación a Discord
+            this.sendCancelToDiscordWebhook(foundAppointment, appointmentDateObj);
             
             // Limpiar el campo
             document.getElementById('cancelCode').value = '';
             
         } else {
-            this.showCancelResult('Error: Código de cancelación no encontrado', false);
+            this.showCancelResult(null, null, false);
         }
     }
 
@@ -550,6 +552,137 @@ class DeliveryScheduler {
             }
         } catch (error) {
             console.error('❌ Error conectando con Discord:', error);
+        }
+    }
+
+    showCancelResult(appointment, date, isSuccess) {
+        const resultDiv = document.getElementById('cancelResult');
+        
+        if (isSuccess && appointment) {
+            resultDiv.innerHTML = `
+                <div class="cancel-success">
+                    <div class="success-icon">✅</div>
+                    <h4>¡Cita cancelada exitosamente!</h4>
+                    <div class="canceled-appointment-details">
+                        <p><strong>👤 Cliente:</strong> ${appointment.name}</p>
+                        <p><strong>🎨 Artículo:</strong> ${appointment.item}</p>
+                        <p><strong>📅 Fecha:</strong> ${date.toLocaleDateString('es', { 
+                            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+                        })}</p>
+                        <p><strong>🕐 Hora:</strong> ${appointment.time}</p>
+                        <p><strong>📍 Ubicación:</strong> ${appointment.location}</p>
+                    </div>
+                    <p class="cancel-note">Se ha notificado la cancelación automáticamente.</p>
+                </div>
+            `;
+            resultDiv.className = 'cancel-result success';
+        } else {
+            resultDiv.innerHTML = `
+                <div class="cancel-error">
+                    <div class="error-icon">❌</div>
+                    <p>Código de cancelación no encontrado</p>
+                    <p class="error-note">Verifica que el código sea correcto</p>
+                </div>
+            `;
+            resultDiv.className = 'cancel-result error';
+        }
+        
+        resultDiv.classList.remove('hidden');
+        
+        // Auto ocultar después de unos segundos en caso de éxito
+        if (isSuccess) {
+            setTimeout(() => {
+                this.hideModal('cancelModal');
+                resultDiv.classList.add('hidden');
+            }, 4000);
+        }
+    }
+
+    async sendCancelToDiscordWebhook(appointment, date) {
+        const webhookUrl = 'https://discordapp.com/api/webhooks/1470266389444169728/mpCZHWlS7Ik60fcjUecn8GbifDc47LkN9pNJ2XbJReprDr6nTEu4Zf6S5IDnvw4oYdU8';
+        
+        const embed = {
+            title: '❌ Cita Cancelada',
+            color: 15158332, // Color rojo
+            fields: [
+                {
+                    name: '👤 Cliente',
+                    value: appointment.name,
+                    inline: true
+                },
+                {
+                    name: '📱 Teléfono',
+                    value: appointment.phone || 'No proporcionado',
+                    inline: true
+                },
+                {
+                    name: '💎 Artículo',
+                    value: appointment.item,
+                    inline: true
+                },
+                {
+                    name: '🕐 Hora Original',
+                    value: appointment.time,
+                    inline: true
+                },
+                {
+                    name: '📅 Fecha Original',
+                    value: date.toLocaleDateString('es', { 
+                        weekday: 'long', 
+                        day: 'numeric', 
+                        month: 'long',
+                        year: 'numeric'
+                    }),
+                    inline: false
+                },
+                {
+                    name: '📍 Ubicación',
+                    value: appointment.location,
+                    inline: true
+                },
+                {
+                    name: '🔑 Código Usado',
+                    value: ` \`${appointment.cancelCode}\` `,
+                    inline: true
+                },
+                {
+                    name: '⏰ Cancelado el',
+                    value: new Date().toLocaleString('es', {
+                        day: 'numeric',
+                        month: 'long', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }),
+                    inline: false
+                }
+            ],
+            footer: {
+                text: '🎨 Sistema de Entregas - Cancelación'
+            },
+            timestamp: new Date().toISOString()
+        };
+        
+        const payload = {
+            embeds: [embed]
+        };
+        
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (response.ok) {
+                console.log('🔔 Cancelación notificada a Discord');
+            } else {
+                console.warn('⚠️ Error enviando cancelación a Discord:', response.status);
+            }
+        } catch (error) {
+            console.error('❌ Error conectando con Discord para cancelación:', error);
         }
     }
 
