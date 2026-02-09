@@ -243,6 +243,88 @@ body {
     margin: 20px 0;
 }
 
+/* Estados de sincronización */
+.sync-status {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-item.official {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+    color: #155724;
+}
+
+.status-item.local {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    color: #856404;
+}
+
+.sync-server-btn {
+    background: #fd7e14;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sync-server-btn:hover {
+    background: #e6681a;
+    transform: translateY(-1px);
+}
+
+/* Modal de sincronización al servidor */
+.server-sync-info {
+    text-align: left;
+}
+
+.sync-steps {
+    margin-top: 20px;
+}
+
+.step {
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    background: #f8f9fa;
+}
+
+.step strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #2d3436;
+}
+
+.step-note {
+    font-size: 12px;
+    color: #636e72;
+    margin: 4px 0 0 0;
+    font-style: italic;
+}
+
+.step code {
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
 /* Calendario */
 .calendar-container {
     background: white;

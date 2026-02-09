@@ -24,38 +24,89 @@ class DeliveryScheduler {
         this.updateLocationPriorityDisplay();
     }
 
-    loadAppointments() {
-        // Cargar solo desde localStorage (sin fetch)
-        const localData = localStorage.getItem('deliveryAppointments');
-        this.appointments = localData ? JSON.parse(localData) : {};
+    async loadAppointments() {
+        // 1. Cargar citas oficiales desde JSON
+        try {
+            const response = await fetch('./data/appointments.json');
+            if (response.ok) {
+                const jsonData = await response.json();
+                this.appointments = jsonData || {};
+                console.log('✅ Citas oficiales cargadas desde JSON:', this.appointments);
+            } else {
+                console.warn('⚠️ No se pudo cargar appointments.json');
+                this.appointments = {};
+            }
+        } catch (error) {
+            console.warn('⚠️ Error cargando JSON (normal en desarrollo local):', error.message);
+            this.appointments = {};
+        }
         
-        console.log('Datos cargados desde localStorage:', this.appointments);
+        // 2. Cargar citas locales pendientes
+        const localData = localStorage.getItem('localAppointments');
+        this.localAppointments = localData ? JSON.parse(localData) : {};
         
-        // Mostrar información de debug
-        this.showDataStatus();
+        console.log('📱 Citas locales pendientes:', this.localAppointments);
+        
+        // Mostrar estado de sincronización
+        this.showSyncStatus();
     }
 
-    saveAppointments() {
-        // Guardar solo en localStorage
-        localStorage.setItem('deliveryAppointments', JSON.stringify(this.appointments));
-        console.log('Datos guardados en localStorage:', this.appointments);
+    saveLocalAppointments() {
+        // Guardar citas locales (pendientes de sincronizar)
+        localStorage.setItem('localAppointments', JSON.stringify(this.localAppointments));
+        console.log('💾 Citas locales guardadas:', this.localAppointments);
         
-        // Actualizar status después de guardar
-        this.showDataStatus();
+        // Actualizar indicadores de estado
+        this.showSyncStatus();
+    }
+    
+    // Combinar citas oficiales + locales para mostrar
+    getAllAppointments() {
+        const combined = { ...this.appointments };
+        
+        // Agregar citas locales
+        for (const [date, localAppts] of Object.entries(this.localAppointments)) {
+            if (!combined[date]) {
+                combined[date] = [];
+            }
+            combined[date] = [...combined[date], ...localAppts];
+        }
+        
+        return combined;
     }
 
-    showDataStatus() {
-        const totalAppointments = Object.values(this.appointments)
+    showSyncStatus() {
+        const officialCount = Object.values(this.appointments)
+            .reduce((total, dayAppts) => total + dayAppts.length, 0);
+        const localCount = Object.values(this.localAppointments)
             .reduce((total, dayAppts) => total + dayAppts.length, 0);
             
         const statusElement = document.getElementById('dataStatus');
         if (statusElement) {
-            statusElement.innerHTML = `
-                <div class="data-status">
-                    📊 <strong>${totalAppointments} citas</strong> en este dispositivo
-                    ${totalAppointments === 0 ? '<br>⚠️ Si esperabas ver citas, usa "Sincronizar Datos"' : ''}
-                </div>
+            let statusHTML = `
+                <div class="sync-status">
+                    <div class="status-item official">
+                        🌐 <strong>${officialCount} citas oficiales</strong> (visibles para todos)
+                    </div>
             `;
+            
+            if (localCount > 0) {
+                statusHTML += `
+                    <div class="status-item local">
+                        📱 <strong>${localCount} citas locales</strong> (solo tú las ves)
+                        <button id="syncToServer" class="sync-server-btn">📤 Sincronizar al Servidor</button>
+                    </div>
+                `;
+            }
+            
+            statusHTML += '</div>';
+            statusElement.innerHTML = statusHTML;
+            
+            // Configurar botón de sincronización
+            const syncBtn = document.getElementById('syncToServer');
+            if (syncBtn) {
+                syncBtn.addEventListener('click', () => this.showServerSyncModal());
+            }
         }
     }
 
@@ -185,8 +236,10 @@ class DeliveryScheduler {
     }
 
     createDayElement(dayName, date, location, dayIndex) {
+        // Usar datos combinados para renderizar
+        const allAppointments = this.getAllAppointments();
         const dayKey = this.getDayKey(date);
-        const appointments = this.appointments[dayKey] || [];
+        const appointments = allAppointments[dayKey] || [];
         const priorityTime = this.getPriorityTime(dayKey);
         const isValidDate = this.isValidBookingDate(date);
         const maxAppointments = 3;
@@ -383,8 +436,9 @@ class DeliveryScheduler {
         const dayKey = this.getDayKey(this.pendingAppointment.date);
         const cancelCode = this.generateCancelCode();
         
-        if (!this.appointments[dayKey]) {
-            this.appointments[dayKey] = [];
+        // Guardar en citas LOCALES (pendientes de sincronizar)
+        if (!this.localAppointments[dayKey]) {
+            this.localAppointments[dayKey] = [];
         }
         
         const appointment = {
@@ -397,8 +451,8 @@ class DeliveryScheduler {
             cancelCode: cancelCode
         };
         
-        this.appointments[dayKey].push(appointment);
-        this.saveAppointments();
+        this.localAppointments[dayKey].push(appointment);
+        this.saveLocalAppointments();
         this.hideModal('confirmModal');
         
         // Enviar a Discord webhook
@@ -597,6 +651,113 @@ class DeliveryScheduler {
         this.hideModal('syncModal');
         
         alert(`✅ Sincronización completa:\n${mergedCount} citas nuevas importadas\n${duplicatesSkipped} duplicados omitidos`);
+    }
+
+    showServerSyncModal() {
+        // Modal para coordinar la subida al servidor
+        if (!document.getElementById('serverSyncModal')) {
+            const modalHTML = `
+                <div id="serverSyncModal" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>🌐 Sincronizar al Servidor</h3>
+                            <button id="closeServerSyncModal" class="close-btn">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="server-sync-info">
+                                <h4>📤 Subir Citas al Servidor</h4>
+                                <p>Para que otros vean tus citas, necesitas actualizar el archivo oficial del servidor.</p>
+                                
+                                <div class="sync-steps">
+                                    <div class="step">
+                                        <strong>1. Descarga archivo actualizado</strong>
+                                        <button id="downloadUpdatedJSON" class="btn btn-primary">📄 Descargar JSON</button>
+                                        <p class="step-note">Incluye citas oficiales + tus citas locales</p>
+                                    </div>
+                                    
+                                    <div class="step">
+                                        <strong>2. Actualiza el servidor</strong>
+                                        <p>Sube el archivo descargado como <code>data/appointments.json</code> en GitHub</p>
+                                        <button id="openGithub" class="btn btn-secondary">🔗 Abrir GitHub</button>
+                                    </div>
+                                    
+                                    <div class="step">
+                                        <strong>3. Confirma sincronización</strong>
+                                        <button id="markAsSynced" class="btn btn-success">✅ Marcar como Sincronizado</button>
+                                        <p class="step-note">Solo después de subir el archivo</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            this.setupServerSyncEvents();
+        }
+        
+        this.showModal('serverSyncModal');
+    }
+
+    setupServerSyncEvents() {
+        document.getElementById('closeServerSyncModal').addEventListener('click', () => {
+            this.hideModal('serverSyncModal');
+        });
+        
+        document.getElementById('downloadUpdatedJSON').addEventListener('click', () => {
+            this.downloadUpdatedJSON();
+        });
+        
+        document.getElementById('openGithub').addEventListener('click', () => {
+            window.open('https://github.com/codemwork/Agendas/blob/main/data/appointments.json', '_blank');
+        });
+        
+        document.getElementById('markAsSynced').addEventListener('click', () => {
+            this.markLocalAsSynced();
+        });
+    }
+
+    downloadUpdatedJSON() {
+        // Combinar citas oficiales con locales
+        const combined = { ...this.appointments };
+        
+        for (const [date, localAppts] of Object.entries(this.localAppointments)) {
+            if (!combined[date]) {
+                combined[date] = [];
+            }
+            combined[date] = [...combined[date], ...localAppts];
+        }
+        
+        // Descargar archivo actualizado
+        const blob = new Blob([JSON.stringify(combined, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'appointments.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert('📄 Archivo appointments.json descargado.\n\nSube este archivo a GitHub en:\ndata/appointments.json');
+    }
+
+    markLocalAsSynced() {
+        // Mover citas locales a oficiales
+        for (const [date, localAppts] of Object.entries(this.localAppointments)) {
+            if (!this.appointments[date]) {
+                this.appointments[date] = [];
+            }
+            this.appointments[date] = [...this.appointments[date], ...localAppts];
+        }
+        
+        // Limpiar citas locales
+        this.localAppointments = {};
+        localStorage.removeItem('localAppointments');
+        
+        this.hideModal('serverSyncModal');
+        this.showSyncStatus();
+        this.renderCalendar();
+        
+        alert('✅ ¡Citas sincronizadas!\nAhora son visibles para todos los usuarios.');
     }
 
     processCancelation() {

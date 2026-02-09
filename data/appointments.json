@@ -1,1 +1,24 @@
-{}
+{
+  "2026-02-11": [
+    {
+      "time": "11:00",
+      "name": "Ana García",
+      "phone": "555-0123",
+      "item": "Collar personalizado con iniciales",
+      "location": "Metro Rosario",
+      "timestamp": "2026-02-09T10:30:00.000Z",
+      "cancelCode": "AG42K1"
+    }
+  ],
+  "2026-02-14": [
+    {
+      "time": "14:00", 
+      "name": "Carlos Mendoza",
+      "phone": "555-0456",
+      "item": "Anillo de compromiso grabado",
+      "location": "Metro Buenavista",
+      "timestamp": "2026-02-09T11:15:00.000Z",
+      "cancelCode": "CM78F9"
+    }
+  ]
+}
