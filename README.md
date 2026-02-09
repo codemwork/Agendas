@@ -1,38 +1,42 @@
-# 📦 Agenda de Entregas - Sistema JSON
+# 🎨 Agenda de Entregas - Sistema de Artesanías
 
-Una aplicación web móvil para gestionar entregas con sistema de priorización inteligente y almacenamiento en JSON.
+Una aplicación web móvil para gestionar entregas de artesanías con sistema de priorización inteligente, seguimiento de artículos y notificaciones automáticas.
 
-## 🏗️ Estructura de Archivos
+## 🌟 Características Principales
 
-```
-Agendas/
-├── index.html              # Página principal
-├── script.js              # Lógica de la aplicación
-├── styles.css             # Estilos CSS
-├── data/                  # Datos JSON
-│   ├── appointments.json  # Citas agendadas
-│   ├── config.json       # Configuración
-│   └── stats.json        # Estadísticas
-└── api/
-    └── save-appointments.php # Endpoint (opcional)
-```
+### ✅ Sistema de Entregas Inteligente
+- **Lunes-Jueves**: Metro Rosario  
+- **Viernes**: Metro Lindavista
+- **Horarios**: 9:00 AM - 7:00 PM
 
-## 📋 Funcionalidades
-
-### ✅ Sistema de Ubicaciones
-- **Lunes**: Metro Buenavista
-- **Martes-Viernes**: Metro Rosario
+### ✅ Seguimiento de Artículos
+- **Campo obligatorio**: Especifica qué artículo vas a apartar
+- **Visualización**: Muestra el artículo en el calendario y confirmaciones
+- **Trazabilidad completa**: Desde reserva hasta entrega
 
 ### ✅ Sistema de Priorización
-- El primer cliente que agenda establece la **hora prioritaria**
-- Los siguientes solo pueden agendar **±2 horas** de esa hora
+- El primer cliente del día establece la **hora prioritaria**
+- Los siguientes pueden agendar **±2 horas** de esa hora
 - Máximo **3 citas por día**
 
-### ✅ Gestión JSON
-- **Exportar**: Descarga todos los datos en JSON
-- **Importar**: Carga datos desde archivo JSON 
-- **Estadísticas**: Visualiza métricas de uso
-- **Backup automático**: Guarda en localStorage
+### ✅ Validación de Producción
+- **2 días mínimo**: No se puede agendar para entrega inmediata
+- **Tiempo de elaboración**: Garantiza calidad en las piezas
+- **Validación automática**: Bloquea días inválidos visualmente
+
+### ✅ Confirmación de Pago
+- **50% adelanto requerido**: Validación antes de confirmar cita
+- **Modal informativo**: Explica condiciones claras
+
+### ✅ Códigos de Cancelación
+- **Códigos únicos de 6 dígitos**: Generados automáticamente
+- **Cancelación self-service**: Cliente puede cancelar sin contacto
+- **Sistema seguro**: Valida código antes de cancelar
+
+### ✅ Notificaciones Discord
+- **Webhook automático**: Envío instantáneo al confirmar citas
+- **Información completa**: Cliente, artículo, fecha, hora, ubicación, código
+- **Formato elegante**: Embeds con colores y emojis para fácil lectura
 
 ## 📁 Estructura de Datos JSON
 
@@ -44,8 +48,10 @@ Agendas/
       "time": "11:00",
       "name": "Juan Pérez", 
       "phone": "5555-1234",
+      "item": "Collar personalizado con nombre",
+      "location": "Metro Rosario",
       "timestamp": "2026-02-08T15:30:00.000Z",
-      "location": "Metro Buenavista"
+      "cancelCode": "AB3K7M"
     }
   ]
 }
@@ -55,12 +61,12 @@ Agendas/
 ```json
 {
   "locations": {
-    "monday": {
-      "name": "Metro Buenavista",
+    "monday-thursday": {
+      "name": "Metro Rosario",
       "maxAppointments": 3
     },
-    "tuesday-friday": {
-      "name": "Metro Rosario",
+    "friday": {
+      "name": "Metro Lindavista",
       "maxAppointments": 3  
     }
   },
@@ -68,6 +74,14 @@ Agendas/
   "prioritySettings": {
     "toleranceHours": 2,
     "enabled": true
+  },
+  "productionTime": {
+    "minimumDays": 2,
+    "enabled": true
+  },
+  "discord": {
+    "webhookEnabled": true,
+    "webhookUrl": "https://discordapp.com/api/webhooks/..."
   }
 }
 ```
@@ -176,5 +190,23 @@ console.log(window.scheduler.stats);
 window.scheduler.renderCalendar();
 ```
 
+## 🌐 GitHub Pages
+
+### 🚀 Aplicación en Vivo
+**URL**: `https://codemwork.github.io/Agendas/`
+
+### ⚙️ Configuración GitHub Pages
+1. Ve a **Settings** en tu repositorio GitHub
+2. Scroll down hasta **Pages** en el menú lateral  
+3. En **Source** selecciona **Deploy from a branch**
+4. Selecciona branch **main** y folder **/ (root)**
+5. Haz clic en **Save**
+6. La aplicación estará disponible en unos minutos
+
+### 📱 Uso en Móvil
+- Abre la URL en cualquier navegador móvil
+- Para instalar como app: **Agregar a pantalla de inicio**
+- Funciona completamente offline después de la primera carga
+
 ---
-**Desarrollado para optimizar entregas con sistema de priorización inteligente** 🚀
+**Desarrollado para optimizar entregas de artesanías con sistema de priorización inteligente** 🎨✨
