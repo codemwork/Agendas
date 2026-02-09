@@ -30,12 +30,33 @@ class DeliveryScheduler {
         this.appointments = localData ? JSON.parse(localData) : {};
         
         console.log('Datos cargados desde localStorage:', this.appointments);
+        
+        // Mostrar información de debug
+        this.showDataStatus();
     }
 
     saveAppointments() {
         // Guardar solo en localStorage
         localStorage.setItem('deliveryAppointments', JSON.stringify(this.appointments));
         console.log('Datos guardados en localStorage:', this.appointments);
+        
+        // Actualizar status después de guardar
+        this.showDataStatus();
+    }
+
+    showDataStatus() {
+        const totalAppointments = Object.values(this.appointments)
+            .reduce((total, dayAppts) => total + dayAppts.length, 0);
+            
+        const statusElement = document.getElementById('dataStatus');
+        if (statusElement) {
+            statusElement.innerHTML = `
+                <div class="data-status">
+                    📊 <strong>${totalAppointments} citas</strong> en este dispositivo
+                    ${totalAppointments === 0 ? '<br>⚠️ Si esperabas ver citas, usa "Sincronizar Datos"' : ''}
+                </div>
+            `;
+        }
     }
 
 
@@ -104,7 +125,10 @@ class DeliveryScheduler {
         document.getElementById('closeCancelModal').addEventListener('click', () => {
             this.hideModal('cancelModal');
         });
-
+        // Botón de sincronización rápida
+        document.getElementById('quickSync').addEventListener('click', () => {
+            this.showSyncModal();
+        });
         document.getElementById('closeCancelAction').addEventListener('click', () => {
             this.hideModal('cancelModal');
         });
@@ -424,6 +448,155 @@ class DeliveryScheduler {
         
         document.getElementById('cancelCodeDisplay').textContent = appointment.cancelCode;
         this.showModal('successModal');
+    }
+
+    showSyncModal() {
+        // Crear modal de sincronización dinámicamente si no existe
+        if (!document.getElementById('syncModal')) {
+            const syncModalHTML = `
+                <div id="syncModal" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>🔄 Sincronizar Datos</h3>
+                            <button id="closeSyncModal" class="close-btn">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="sync-options">
+                                <div class="sync-option">
+                                    <h4>📤 Exportar Mis Datos</h4>
+                                    <p>Descarga todas las citas de este dispositivo</p>
+                                    <button id="exportData" class="btn btn-primary">Descargar JSON</button>
+                                </div>
+                                
+                                <div class="sync-option">
+                                    <h4>📥 Importar Datos</h4>
+                                    <p>Carga citas desde otro dispositivo</p>
+                                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                                    <button id="importData" class="btn btn-secondary">Seleccionar Archivo</button>
+                                </div>
+                                
+                                <div class="sync-option">
+                                    <h4>📋 Importar desde Texto</h4>
+                                    <p>Pega JSON copiado desde otro dispositivo</p>
+                                    <textarea id="jsonInput" placeholder="Pega aquí el JSON..." rows="4"></textarea>
+                                    <button id="loadFromText" class="btn btn-secondary">Cargar Datos</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', syncModalHTML);
+            
+            // Configurar eventos del modal de sync
+            this.setupSyncEvents();
+        }
+        
+        this.showModal('syncModal');
+    }
+
+    setupSyncEvents() {
+        document.getElementById('closeSyncModal').addEventListener('click', () => {
+            this.hideModal('syncModal');
+        });
+        
+        document.getElementById('exportData').addEventListener('click', () => {
+            this.exportAppointments();
+        });
+        
+        document.getElementById('importData').addEventListener('click', () => {
+            document.getElementById('importFile').click();
+        });
+        
+        document.getElementById('importFile').addEventListener('change', (e) => {
+            this.importFromFile(e.target.files[0]);
+        });
+        
+        document.getElementById('loadFromText').addEventListener('click', () => {
+            this.importFromText();
+        });
+    }
+
+    exportAppointments() {
+        const data = {
+            appointments: this.appointments,
+            exportDate: new Date().toISOString(),
+            deviceInfo: 'Agenda-de-Entregas'
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `citas-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert('✅ Datos exportados. Comparte este archivo con otros dispositivos.');
+    }
+
+    async importFromFile(file) {
+        if (!file) return;
+        
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            this.mergeAppointments(data.appointments || data);
+        } catch (error) {
+            alert('❌ Error al leer el archivo. Verifica que sea un JSON válido.');
+        }
+    }
+
+    importFromText() {
+        const text = document.getElementById('jsonInput').value.trim();
+        if (!text) {
+            alert('⚠️ Pega el JSON en el área de texto.');
+            return;
+        }
+        
+        try {
+            const data = JSON.parse(text);
+            this.mergeAppointments(data.appointments || data);
+            document.getElementById('jsonInput').value = '';
+        } catch (error) {
+            alert('❌ JSON inválido. Verifica el formato.');
+        }
+    }
+
+    mergeAppointments(newData) {
+        if (!newData || typeof newData !== 'object') {
+            alert('❌ Datos inválidos.');
+            return;
+        }
+        
+        let mergedCount = 0;
+        let duplicatesSkipped = 0;
+        
+        for (const [date, appointments] of Object.entries(newData)) {
+            if (!this.appointments[date]) {
+                this.appointments[date] = [];
+            }
+            
+            for (const apt of appointments) {
+                // Verificar duplicados por código de cancelación
+                const exists = this.appointments[date].some(existing => 
+                    existing.cancelCode === apt.cancelCode
+                );
+                
+                if (!exists) {
+                    this.appointments[date].push(apt);
+                    mergedCount++;
+                } else {
+                    duplicatesSkipped++;
+                }
+            }
+        }
+        
+        this.saveAppointments();
+        this.renderCalendar();
+        this.hideModal('syncModal');
+        
+        alert(`✅ Sincronización completa:\n${mergedCount} citas nuevas importadas\n${duplicatesSkipped} duplicados omitidos`);
     }
 
     processCancelation() {

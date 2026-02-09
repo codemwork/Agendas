@@ -166,6 +166,83 @@ body {
     box-shadow: 0 4px 16px rgba(149,165,166,0.4);
 }
 
+.sync-btn {
+    background: #0984e3;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(9,132,227,0.3);
+}
+
+.sync-btn:hover {
+    background: #0770c4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(9,132,227,0.4);
+}
+
+/* Indicador de estado de datos */
+.data-status-container {
+    margin: 16px 0;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #0984e3;
+    font-size: 13px;
+    text-align: center;
+}
+
+.data-status {
+    color: #2d3436;
+}
+
+/* Estilos del modal de sincronización */
+.sync-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sync-option {
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.sync-option h4 {
+    margin: 0 0 8px 0;
+    color: #2d3436;
+    font-size: 16px;
+}
+
+.sync-option p {
+    margin: 0 0 12px 0;
+    color: #636e72;
+    font-size: 14px;
+}
+
+.sync-option textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.actions-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
 /* Calendario */
 .calendar-container {
     background: white;
