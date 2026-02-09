@@ -1,38 +1,162 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Delivery Scheduling</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .container { width: 90%; max-width: 600px; margin: auto; padding: 20px; }
-        h1 { text-align: center; }
-        .schedule { margin: 20px 0; }
-        .priority { color: red; font-weight: bold; }
-    </style>
+    <title>Agenda de Entregas</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Delivery Scheduling</h1>
-        <div class="schedule">
-            <h2>Metro Buenavista (Mondays)</h2>
-            <p>If you're scheduling a delivery for Monday, please contact us during the priority time:</p>
-            <ul>
-                <li class="priority">Priority Time: 10:00 AM - 2:00 PM</li>
-            </ul>
-        </div>
-        <div class="schedule">
-            <h2>Metro Rosario (Tuesday - Friday)</h2>
-            <p>For deliveries on Tuesday through Friday, standard scheduling applies:</p>
-            <ul>
-                <li class="priority">Standard Hours: 9:00 AM - 5:00 PM</li>
-            </ul>
-            <p>Priority requests are accepted during these times:</p>
-            <ul>
-                <li class="priority">Priority Time: 12:00 PM - 2:00 PM</li>
-            </ul>
-        </div>
+    <div class="app">
+        <header class="header">
+            <h1>📦 Agenda de Entregas</h1>
+            <p class="subtitle">Reserva tu cita para la entrega de piezas</p>
+            <div class="week-navigation">
+                <button id="prevWeek" class="nav-btn">◀</button>
+                <span id="weekRange" class="week-range"></span>
+                <button id="nextWeek" class="nav-btn">▶</button>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="location-info">
+                <div class="location-card rosario">
+                    <div class="location-icon">🚇</div>
+                    <div class="location-details">
+                        <h3>Lun - Jue</h3>
+                        <p>Metro Rosario</p>
+                        <small class="priority-text">Sin entregas programadas</small>
+                    </div>
+                </div>
+                <div class="location-card lindavista">
+                    <div class="location-icon">🚇</div>
+                    <div class="location-details">
+                        <h3>Viernes</h3>
+                        <p>Metro Lindavista</p>
+                        <small class="priority-text">Sin entregas programadas</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-bar">
+                <button id="cancelAppointmentBtn" class="cancel-btn">
+                    🔄 Cancelar Cita
+                </button>
+            </div>
+
+            <div class="calendar-container">
+                <div id="calendar" class="calendar"></div>
+            </div>
+
+            <div id="timeModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modalTitle"></h3>
+                        <button id="closeModal" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="priorityInfo" class="priority-info hidden"></div>
+                        <div id="timeSlots" class="time-slots"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="paymentModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header payment-header">
+                        <h3>💰 Información Importante</h3>
+                        <button id="closePaymentModal" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="payment-notice">
+                            <div class="payment-icon">💳</div>
+                            <h4>Se requiere 50% de adelanto</h4>
+                            <p>Para la elaboración de su pieza es necesario realizar un adelanto del 50% del total.</p>
+                            <div class="payment-details" id="paymentDetails"></div>
+                            <p class="agreement">¿¿Está de acuerdo con esta condición?</p>
+                        </div>
+                        <div class="modal-actions">
+                            <button id="disagreePayment" class="btn btn-secondary">No, cancelar</button>
+                            <button id="agreePayment" class="btn btn-primary">Sí, continuar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="confirmModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>📅 Confirmar Cita</h3>
+                        <button id="closeConfirmModal" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="appointmentDetails"></div>
+                        <div class="form-group">
+                            <label for="clientName">Nombre completo:</label>
+                            <input type="text" id="clientName" placeholder="Ingresa tu nombre" maxlength="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientPhone">Teléfono (opcional):</label>
+                            <input type="tel" id="clientPhone" placeholder="Ej: 55-1234-5678">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemDescription">¿Qué vas a apartar?</label>
+                            <input type="text" id="itemDescription" placeholder="Ej: Collar personalizado, anillo, pulsera..." maxlength="100" required>
+                        </div>
+                        <div class="modal-actions">
+                            <button id="cancelAppointment" class="btn btn-secondary">Cancelar</button>
+                            <button id="confirmAppointment" class="btn btn-primary">Confirmar Cita</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cancelModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header cancel-header">
+                        <h3>🔄 Cancelar Cita</h3>
+                        <button id="closeCancelModal" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Ingresa el código de cancelación que recibiste al agendar tu cita:</p>
+                        <div class="form-group">
+                            <label for="cancelCode">Código de cancelación:</label>
+                            <input type="text" id="cancelCode" placeholder="Ej: ABC123" maxlength="6" style="text-transform: uppercase;">
+                        </div>
+                        <div id="cancelResult" class="cancel-result hidden"></div>
+                        <div class="modal-actions">
+                            <button id="closeCancelAction" class="btn btn-secondary">Cerrar</button>
+                            <button id="processCancelation" class="btn btn-danger">Cancelar Cita</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="successModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header success-header">
+                        <h3>✅ Cita Confirmada</h3>
+                        <button id="closeSuccessModal" class="close-btn">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="success-content">
+                            <div class="success-icon">✅</div>
+                            <div id="successDetails"></div>
+                            <div class="cancel-code-display">
+                                <h4>Código de cancelación:</h4>
+                                <div class="code-box" id="cancelCodeDisplay"></div>
+                                <p><small>Guarda este código para poder cancelar tu cita si es necesario</small></p>
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <button id="closeSuccess" class="btn btn-primary">Entendido</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

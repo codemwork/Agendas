@@ -1,0 +1,17 @@
+{
+  "lastBackup": "2026-02-08T16:30:00.000Z",
+  "totalAppointments": 2,
+  "version": "1.0",
+  "backupHistory": [
+    {
+      "date": "2026-02-08T16:30:00.000Z", 
+      "appointments": 2,
+      "type": "manual"
+    }
+  ],
+  "systemInfo": {
+    "createdDate": "2026-02-08T16:00:00.000Z",
+    "lastModified": "2026-02-08T16:30:00.000Z",
+    "dataVersion": "1.0"
+  }
+}

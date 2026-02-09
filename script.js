@@ -1,76 +1,618 @@
-// delivery-scheduling.js
-
-// Function to determine priority hours for scheduling deliveries
-function getPriorityHours() {
-    const currentHour = new Date().getUTCHours();
-    let priorityHours = [];
-
-    // Define priority hours (e.g. 8AM to 10AM and 4PM to 6PM UTC)
-    if (currentHour >= 8 && currentHour < 10) {
-        priorityHours.push('8AM - 10AM');
+// Agenda de Entregas - Sistema con Códigos de Cancelación
+class DeliveryScheduler {
+    constructor() {
+        this.currentWeek = this.getWeekStart(new Date());
+        this.appointments = {};
+        this.selectedDate = null;
+        this.selectedTime = null;
+        this.pendingAppointment = null;
+        
+        // Horarios disponibles (9 AM a 6 PM)
+        this.timeSlots = [
+            '09:00', '10:00', '11:00', '12:00', 
+            '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'
+        ];
+        
+        this.init();
     }
-    if (currentHour >= 16 && currentHour < 18) {
-        priorityHours.push('4PM - 6PM');
+
+    async init() {
+        this.loadAppointments();
+        this.setupEventListeners();
+        this.updateWeekDisplay();
+        this.renderCalendar();
+        this.updateLocationPriorityDisplay();
     }
 
-    return priorityHours;
+    loadAppointments() {
+        // Cargar solo desde localStorage (sin fetch)
+        const localData = localStorage.getItem('deliveryAppointments');
+        this.appointments = localData ? JSON.parse(localData) : {};
+        
+        console.log('Datos cargados desde localStorage:', this.appointments);
+    }
+
+    saveAppointments() {
+        // Guardar solo en localStorage
+        localStorage.setItem('deliveryAppointments', JSON.stringify(this.appointments));
+        console.log('Datos guardados en localStorage:', this.appointments);
+    }
+
+
+
+    setupEventListeners() {
+        // Navegación de semanas
+        document.getElementById('prevWeek').addEventListener('click', () => {
+            this.currentWeek.setDate(this.currentWeek.getDate() - 7);
+            this.updateWeekDisplay();
+            this.renderCalendar();
+        });
+
+        document.getElementById('nextWeek').addEventListener('click', () => {
+            this.currentWeek.setDate(this.currentWeek.getDate() + 7);
+            this.updateWeekDisplay();
+            this.renderCalendar();
+        });
+
+        // Modales de horarios
+        document.getElementById('closeModal').addEventListener('click', () => {
+            this.hideModal('timeModal');
+        });
+
+        // Modal de adelanto
+        document.getElementById('closePaymentModal').addEventListener('click', () => {
+            this.hideModal('paymentModal');
+        });
+
+        document.getElementById('agreePayment').addEventListener('click', () => {
+            this.hideModal('paymentModal');
+            this.showConfirmationModal();
+        });
+
+        document.getElementById('disagreePayment').addEventListener('click', () => {
+            this.hideModal('paymentModal');
+        });
+
+        // Modal de confirmación
+        document.getElementById('closeConfirmModal').addEventListener('click', () => {
+            this.hideModal('confirmModal');
+        });
+
+        document.getElementById('confirmAppointment').addEventListener('click', () => {
+            this.confirmAppointment();
+        });
+
+        document.getElementById('cancelAppointment').addEventListener('click', () => {
+            this.hideModal('confirmModal');
+        });
+
+        // Modal de éxito
+        document.getElementById('closeSuccessModal').addEventListener('click', () => {
+            this.hideModal('successModal');
+        });
+
+        document.getElementById('closeSuccess').addEventListener('click', () => {
+            this.hideModal('successModal');
+        });
+
+        // Botón de cancelar cita
+        document.getElementById('cancelAppointmentBtn').addEventListener('click', () => {
+            this.showModal('cancelModal');
+        });
+
+        // Modal de cancelación
+        document.getElementById('closeCancelModal').addEventListener('click', () => {
+            this.hideModal('cancelModal');
+        });
+
+        document.getElementById('closeCancelAction').addEventListener('click', () => {
+            this.hideModal('cancelModal');
+        });
+
+        document.getElementById('processCancelation').addEventListener('click', () => {
+            this.processCancelation();
+        });
+    }
+
+    getWeekStart(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Lunes como inicio
+        return new Date(d.setDate(diff));
+    }
+
+    updateWeekDisplay() {
+        const endWeek = new Date(this.currentWeek);
+        endWeek.setDate(endWeek.getDate() + 6);
+        
+        const startStr = this.currentWeek.toLocaleDateString('es', { 
+            day: 'numeric', 
+            month: 'short' 
+        });
+        const endStr = endWeek.toLocaleDateString('es', { 
+            day: 'numeric', 
+            month: 'short',
+            year: 'numeric'
+        });
+        
+        document.getElementById('weekRange').textContent = `${startStr} - ${endStr}`;
+    }
+
+    renderCalendar() {
+        const calendar = document.getElementById('calendar');
+        calendar.innerHTML = '';
+
+        const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
+        const locations = ['Metro Rosario', 'Metro Rosario', 'Metro Rosario', 'Metro Rosario', 'Metro Lindavista'];
+
+        days.forEach((dayName, index) => {
+            const currentDate = new Date(this.currentWeek);
+            currentDate.setDate(currentDate.getDate() + index);
+            
+            // Solo mostrar días pasados y futuros (no pasado)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (currentDate >= today) {
+                const dayElement = this.createDayElement(dayName, currentDate, locations[index], index);
+                calendar.appendChild(dayElement);
+            }
+        });
+    }
+
+    createDayElement(dayName, date, location, dayIndex) {
+        const dayKey = this.getDayKey(date);
+        const appointments = this.appointments[dayKey] || [];
+        const priorityTime = this.getPriorityTime(dayKey);
+        const isValidDate = this.isValidBookingDate(date);
+        const maxAppointments = 3;
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.className = `day-card ${!isValidDate ? 'disabled-day' : ''}`;
+        
+        let disabledReason = '';
+        let buttonText = 'Agendar cita';
+        let isDisabled = false;
+        
+        if (!isValidDate) {
+            disabledReason = 'Se requieren 2 días para elaboración';
+            buttonText = 'No disponible';
+            isDisabled = true;
+        } else if (appointments.length >= maxAppointments) {
+            buttonText = 'Día lleno';
+            isDisabled = true;
+        }
+        
+        dayDiv.innerHTML = `
+            <div class="day-header">
+                <h3>${dayName} ${date.getDate()}</h3>
+                <p class="location">${location}</p>
+                ${priorityTime ? `<p class="priority-badge">🕐 Prioritario: ${priorityTime}</p>` : ''}
+                ${!isValidDate ? `<p class="warning-badge">⚠️ ${disabledReason}</p>` : ''}
+            </div>
+            <div class="appointments">
+                ${appointments.length > 0 ? 
+                    appointments.map(apt => `
+                        <div class="appointment">
+                            <span class="time">${apt.time}</span>
+                            <span class="name">${apt.name}</span>
+                            ${apt.item ? `<span class="item">🎨 ${apt.item}</span>` : ''}
+                        </div>
+                    `).join('') : 
+                    '<p class="no-appointments">Sin citas</p>'
+                }
+            </div>
+            <button class="book-btn" ${isDisabled ? 'disabled' : ''}>
+                ${buttonText}
+            </button>
+        `;
+
+        if (!isDisabled) {
+            dayDiv.querySelector('.book-btn').addEventListener('click', () => {
+                this.openTimeModal(date, location, dayIndex);
+            });
+        }
+
+        return dayDiv;
+    }
+
+    isValidBookingDate(selectedDate) {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        
+        // Calcular la diferencia en días
+        const diffTime = selectedDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Se requieren mínimo 2 días de anticipación
+        return diffDays >= 2;
+    }
+
+    openTimeModal(date, location, dayIndex) {
+        // Verificar nuevamente si la fecha es válida (por si acaso)
+        if (!this.isValidBookingDate(date)) {
+            alert('⚠️ No se puede agendar esta fecha.\nSe requieren mínimo 2 días para la elaboración de la pieza.');
+            return;
+        }
+        
+        this.selectedDate = date;
+        const dayKey = this.getDayKey(date);
+        const appointments = this.appointments[dayKey] || [];
+        const priorityTime = this.getPriorityTime(dayKey);
+        
+        document.getElementById('modalTitle').textContent = 
+            `${date.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })} - ${location}`;
+
+        // Mostrar información de prioridad
+        const priorityInfo = document.getElementById('priorityInfo');
+        if (priorityTime) {
+            priorityInfo.className = 'priority-info';
+            priorityInfo.innerHTML = `
+                <strong>⚠️ Hora Prioritaria: ${priorityTime}</strong><br>
+                <small>Solo puedes agendar cerca de esta hora para optimizar entregas</small>
+            `;
+        } else {
+            priorityInfo.className = 'priority-info hidden';
+        }
+
+        // Generar horarios disponibles
+        const availableSlots = this.getAvailableSlots(dayKey, priorityTime);
+        const timeSlotsContainer = document.getElementById('timeSlots');
+        timeSlotsContainer.innerHTML = '';
+
+        if (availableSlots.length === 0) {
+            timeSlotsContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d; font-style: italic;">No hay horarios disponibles este día</p>';
+        } else {
+            availableSlots.forEach(time => {
+                const button = document.createElement('button');
+                button.className = 'time-slot';
+                button.textContent = time;
+                button.addEventListener('click', () => {
+                    this.selectTime(time);
+                });
+                timeSlotsContainer.appendChild(button);
+            });
+        }
+
+        this.showModal('timeModal');
+    }
+
+    getAvailableSlots(dayKey, priorityTime) {
+        const appointments = this.appointments[dayKey] || [];
+        const bookedTimes = appointments.map(apt => apt.time);
+        
+        if (!priorityTime) {
+            // Si no hay hora prioritaria, todos los horarios están disponibles
+            return this.timeSlots.filter(time => !bookedTimes.includes(time));
+        }
+        
+        // Si hay hora prioritaria, solo permitir ±2 horas
+        const priorityHour = parseInt(priorityTime.split(':')[0]);
+        const allowedSlots = this.timeSlots.filter(time => {
+            const hour = parseInt(time.split(':')[0]);
+            return Math.abs(hour - priorityHour) <= 2;
+        });
+        
+        return allowedSlots.filter(time => !bookedTimes.includes(time));
+    }
+
+    selectTime(time) {
+        this.selectedTime = time;
+        this.hideModal('timeModal');
+        
+        // Crear objeto de cita pendiente
+        this.pendingAppointment = {
+            date: this.selectedDate,
+            time: this.selectedTime,
+            location: this.selectedDate.getDay() === 5 ? 'Metro Lindavista' : 'Metro Rosario'
+        };
+        
+        this.showPaymentModal();
+    }
+
+    showPaymentModal() {
+        const details = document.getElementById('paymentDetails');
+        details.innerHTML = `
+            <p><strong>Fecha:</strong> ${this.pendingAppointment.date.toLocaleDateString('es', { 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+            })}</p>
+            <p><strong>Hora:</strong> ${this.pendingAppointment.time}</p>
+            <p><strong>Ubicación:</strong> ${this.pendingAppointment.location}</p>
+        `;
+        
+        this.showModal('paymentModal');
+    }
+
+    showConfirmationModal() {
+        const details = document.getElementById('appointmentDetails');
+        details.innerHTML = `
+            <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+                <p><strong>Fecha:</strong> ${this.pendingAppointment.date.toLocaleDateString('es', { 
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+                })}</p>
+                <p><strong>Hora:</strong> ${this.pendingAppointment.time}</p>
+                <p><strong>Ubicación:</strong> ${this.pendingAppointment.location}</p>
+            </div>
+        `;
+        
+        document.getElementById('clientName').value = '';
+        document.getElementById('clientPhone').value = '';
+        document.getElementById('itemDescription').value = '';
+        this.showModal('confirmModal');
+    }
+
+    confirmAppointment() {
+        const name = document.getElementById('clientName').value.trim();
+        if (!name) {
+            alert('Por favor ingresa tu nombre');
+            return;
+        }
+
+        const item = document.getElementById('itemDescription').value.trim();
+        if (!item) {
+            alert('Por favor especifica qué artículo vas a apartar');
+            return;
+        }
+
+        const phone = document.getElementById('clientPhone').value.trim();
+        const dayKey = this.getDayKey(this.pendingAppointment.date);
+        const cancelCode = this.generateCancelCode();
+        
+        if (!this.appointments[dayKey]) {
+            this.appointments[dayKey] = [];
+        }
+        
+        const appointment = {
+            time: this.pendingAppointment.time,
+            name: name,
+            phone: phone,
+            item: item,
+            location: this.pendingAppointment.location,
+            timestamp: new Date().toISOString(),
+            cancelCode: cancelCode
+        };
+        
+        this.appointments[dayKey].push(appointment);
+        this.saveAppointments();
+        this.hideModal('confirmModal');
+        
+        // Enviar a Discord webhook
+        this.sendToDiscordWebhook(appointment, this.pendingAppointment.date);
+        
+        // Mostrar modal de éxito con código
+        this.showSuccessModal(appointment);
+        
+        this.renderCalendar();
+        this.updateLocationPriorityDisplay();
+    }
+
+    generateCancelCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        // Verificar que el código no exista ya
+        if (this.isCodeInUse(code)) {
+            return this.generateCancelCode(); // Recursivo si ya existe
+        }
+        return code;
+    }
+
+    isCodeInUse(code) {
+        for (const [date, appointments] of Object.entries(this.appointments)) {
+            if (appointments.some(apt => apt.cancelCode === code)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    showSuccessModal(appointment) {
+        const details = document.getElementById('successDetails');
+        details.innerHTML = `
+            <h4>Tu cita ha sido confirmada</h4>
+            <p><strong>Fecha:</strong> ${this.pendingAppointment.date.toLocaleDateString('es', { 
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+            })}</p>
+            <p><strong>Hora:</strong> ${appointment.time}</p>
+            <p><strong>Ubicación:</strong> ${appointment.location}</p>
+            <p><strong>Nombre:</strong> ${appointment.name}</p>
+            <p><strong>🎨 Artículo:</strong> ${appointment.item}</p>
+        `;
+        
+        document.getElementById('cancelCodeDisplay').textContent = appointment.cancelCode;
+        this.showModal('successModal');
+    }
+
+    processCancelation() {
+        const code = document.getElementById('cancelCode').value.trim().toUpperCase();
+        const resultDiv = document.getElementById('cancelResult');
+        
+        if (!code) {
+            this.showCancelResult('Error: Ingresa un código de cancelación', false);
+            return;
+        }
+        
+        // Buscar la cita con el código
+        let foundAppointment = null;
+        let appointmentDate = null;
+        
+        for (const [date, appointments] of Object.entries(this.appointments)) {
+            const appointmentIndex = appointments.findIndex(apt => apt.cancelCode === code);
+            if (appointmentIndex !== -1) {
+                foundAppointment = appointments[appointmentIndex];
+                appointmentDate = date;
+                
+                // Eliminar la cita
+                appointments.splice(appointmentIndex, 1);
+                
+                // Si no quedan citas ese día, eliminar el día
+                if (appointments.length === 0) {
+                    delete this.appointments[date];
+                }
+                
+                break;
+            }
+        }
+        
+        if (foundAppointment) {
+            this.saveAppointments();
+            this.renderCalendar();
+            this.updateLocationPriorityDisplay();
+            
+            const appointmentDateObj = new Date(appointmentDate);
+            this.showCancelResult(
+                `Cita cancelada exitosamente:\n${foundAppointment.name} - ${foundAppointment.time} el ${appointmentDateObj.toLocaleDateString('es')}`, 
+                true
+            );
+            
+            // Limpiar el campo
+            document.getElementById('cancelCode').value = '';
+            
+        } else {
+            this.showCancelResult('Error: Código de cancelación no encontrado', false);
+        }
+    }
+
+    async sendToDiscordWebhook(appointment, date) {
+        const webhookUrl = 'https://discordapp.com/api/webhooks/1470266389444169728/mpCZHWlS7Ik60fcjUecn8GbifDc47LkN9pNJ2XbJReprDr6nTEu4Zf6S5IDnvw4oYdU8';
+        
+        const embed = {
+            title: '🎨 Nueva Cita Agendada',
+            color: 3447003, // Color azul
+            fields: [
+                {
+                    name: '👤 Cliente',
+                    value: appointment.name,
+                    inline: true
+                },
+                {
+                    name: '📱 Teléfono',
+                    value: appointment.phone || 'No proporcionado',
+                    inline: true
+                },
+                {
+                    name: '💍 Artículo',
+                    value: appointment.item,
+                    inline: true
+                },
+                {
+                    name: '🕐 Hora',
+                    value: appointment.time,
+                    inline: true
+                },
+                {
+                    name: '📅 Fecha',
+                    value: date.toLocaleDateString('es', { 
+                        weekday: 'long', 
+                        day: 'numeric', 
+                        month: 'long',
+                        year: 'numeric'
+                    }),
+                    inline: false
+                },
+                {
+                    name: '📍 Ubicación',
+                    value: appointment.location,
+                    inline: true
+                },
+                {
+                    name: '🔑 Código de Cancelación',
+                    value: `\`${appointment.cancelCode}\``,
+                    inline: true
+                }
+            ],
+            footer: {
+                text: '🎨 Sistema de Entregas'
+            },
+            timestamp: new Date().toISOString()
+        };
+        
+        const payload = {
+            embeds: [embed]
+        };
+        
+        try {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            if (response.ok) {
+                console.log('✅ Notificación enviada a Discord');
+            } else {
+                console.warn('⚠️ Error enviando a Discord:', response.status);
+            }
+        } catch (error) {
+            console.error('❌ Error conectando con Discord:', error);
+        }
+    }
+
+    getPriorityTime(dayKey) {
+        const appointments = this.appointments[dayKey];
+        if (!appointments || appointments.length === 0) return null;
+        
+        // Return the time of the first appointment (chronologically first booked)
+        const sortedAppointments = appointments.sort((a, b) => 
+            new Date(a.timestamp) - new Date(b.timestamp)
+        );
+        
+        return sortedAppointments[0].time;
+    }
+
+    updateLocationPriorityDisplay() {
+        const rosario = document.querySelector('.location-card.rosario .priority-text');
+        const lindavista = document.querySelector('.location-card.lindavista .priority-text');
+        
+        // Check Monday-Thursday (Rosario) priorities
+        let rosarioPriorities = [];
+        for (let i = 0; i <= 3; i++) { // Lunes a Jueves
+            const date = new Date(this.currentWeek);
+            date.setDate(date.getDate() + i);
+            const key = this.getDayKey(date);
+            const priority = this.getPriorityTime(key);
+            if (priority) rosarioPriorities.push(priority);
+        }
+        
+        // Check Friday (Lindavista) priority
+        const fridayDate = new Date(this.currentWeek);
+        fridayDate.setDate(fridayDate.getDate() + 4); // Viernes
+        const fridayKey = this.getDayKey(fridayDate);
+        const fridayPriority = this.getPriorityTime(fridayKey);
+        
+        // Update display
+        if (rosario) {
+            rosario.textContent = rosarioPriorities.length > 0 ? 
+                `${rosarioPriorities.length} entrega(s) programada(s)` : 'Sin entregas programadas';
+        }
+        
+        if (lindavista) {
+            lindavista.textContent = fridayPriority ? 
+                `Entrega prioritaria: ${fridayPriority}` : 'Sin entregas programadas';
+        }
+    }
+
+    getDayKey(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    showModal(modalId) {
+        document.getElementById(modalId).classList.remove('hidden');
+        document.body.classList.add('modal-open');
+    }
+
+    hideModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+        document.body.classList.remove('modal-open');
+    }
 }
 
-// Function to create a simple calendar
-function createCalendar(year, month) {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    let calendar = '';
-    calendar += `\n    <table class='calendar'>`;
-    calendar += `\n        <tr>`;
-    
-    // Create heading for days of the week
-    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    weekdays.forEach(day => calendar += `<th>${day}</th>`);
-    calendar += `</tr>`;
-
-    // Fill the calendar with blanks for dates before the first of the month
-    const firstDay = new Date(year, month, 1).getDay();
-    calendar += `<tr>`;
-    for (let i = 0; i < firstDay; i++) {
-        calendar += `<td></td>`;
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-        if ((day + firstDay - 1) % 7 === 0 && day !== 1) {
-            calendar += `</tr><tr>`;
-        }
-        calendar += `<td>${day}</td>`;
-    }
-    calendar += `</tr></table>`;
-    return calendar;
-}
-
-// Mobile-optimized interface
-function setMobileStyles() {
-    const style = document.createElement('style');
-    style.innerHTML = `
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .calendar {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .calendar th, .calendar td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// Initializing script
+// Inicializar la aplicación cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    setMobileStyles();
-    console.log('Priority Hours:', getPriorityHours());
-    document.body.innerHTML += createCalendar(2026, 1);  // February 2026
+    window.scheduler = new DeliveryScheduler();
 });

@@ -1,0 +1,21 @@
+{
+  "totalAppointments": 2,
+  "appointmentsByLocation": {
+    "Metro Buenavista": 1,
+    "Metro Rosario": 1
+  },
+  "appointmentsByDay": {
+    "lunes": 1,
+    "martes": 1,
+    "miercoles": 0,
+    "jueves": 0,
+    "viernes": 0
+  },
+  "popularTimeSlots": {
+    "11:00": 1,
+    "14:00": 1
+  },
+  "lastUpdated": "2026-02-08T16:15:00.000Z",
+  "averageBookingAdvance": 2,
+  "busyDays": []
+}
